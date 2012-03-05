@@ -126,7 +126,61 @@ ExceptionHandler(ExceptionType which)
 			break; // SC_Print
 		}
 
-                default:
+                case SC_Read:
+                         DEBUG('a', "Read syscall invoked.\n");
+
+                         break;
+
+                 case SC_Write:
+                         DEBUG('a', "Write syscall invoked.\n");
+
+                         break;
+
+                 case SC_Open:
+                 {
+                        DEBUG('a', "Open syscall invoked.\n");
+			int vaddr = machine->ReadRegister(4); //address of filename string
+                
+			int size = 0;
+                
+			buf[BUF_SIZE - 1] = '\0';               // For safety.
+                
+			do {
+				// Invoke ReadMem to read the contents from user space
+                
+				machine->ReadMem(vaddr,    // Location to be read
+					sizeof(char),      // Size of data to be read
+					(int*)(buf+size)   // where the read contents 
+					);                 // are stored
+                
+				// Compute next address
+				vaddr+=sizeof(char);    size++;
+                
+			} while( size < (BUF_SIZE - 1) && buf[size-1] != '\0');
+                
+			size--;
+			DEBUG('a', "Size of filename string = %d", size);
+                
+			int fd = open(buf, O_RDWR);
+			machine->WriteRegister(2, fd);
+			bzero(buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+
+			updatePC();
+                        break; // SC_Open
+                 }
+
+                 case SC_Close:
+                 {
+                        DEBUG('a', "Close syscall invoked.\n");
+			int fd = machine->ReadRegister(4);
+                
+                        close(fd);
+
+			updatePC();
+                        break; // SC_Open
+                 }
+
+                 default:
                         printf("Unknown/Unimplemented system call %d!", type);
                         ASSERT(FALSE); // Should never happen
                         break;
