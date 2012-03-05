@@ -85,13 +85,13 @@ ExceptionHandler(ExceptionType which)
             switch(type)
             {
                 case SC_Halt:
-                         DEBUG('a', "Shutdown, initiated by user program.\n");
+                         DEBUG('a', "DEBUG: Shutdown, initiated by user program.\n");
                          interrupt->Halt();
                          break;
 
                 case SC_Print:
                 {
-                        DEBUG('a', "Print syscall invoked.\n");
+                        DEBUG('a', "DEBUG: Print syscall invoked.\n");
 			int vaddr = machine->ReadRegister(4);
 			// This address (pointer to the string to be printed) is 
 			// the address that points to the user address space.
@@ -118,7 +118,7 @@ ExceptionHandler(ExceptionType which)
 			} while( size < (BUF_SIZE - 1) && buf[size-1] != '\0');
                 
 			size--;
-			DEBUG('a', "Size of string = %d", size);
+			DEBUG('a', "DEBUG: Size of string = %d\n", size);
                 
 			printf("%s", buf);
 			bzero(buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
@@ -127,13 +127,40 @@ ExceptionHandler(ExceptionType which)
 		}
 
                 case SC_Read:
-                         DEBUG('a', "Read syscall invoked.\n");
+                {
+                        DEBUG('a', "DEBUG: Read syscall invoked.\n");
+                        int baddr = machine->ReadRegister(4); //address of buffer
+                        int bsize =  machine->ReadRegister(5);
+                        int fd =   machine->ReadRegister(6);
+                        
+			int size, i = 0;
+                
+			buf[BUF_SIZE - 1] = '\0';               // For safety.
 
-                         break;
+                        size = read(fd, buf, bsize);
+			DEBUG('a', "DEBUG: Read from file = %s\n", buf);
+			bsize = size;
+                        while ( i < (BUF_SIZE-1) && bsize--) {
+				// Invoke WriteMem to write the contents to user space
+                
+				machine->WriteMem(baddr,   // Location to write
+					sizeof(char),      // Size of data to be written
+					(int) *(buf+i)       // where the write contents 
+					);                 // are stored
+                
+				// Compute next address
+				baddr+=sizeof(char);    i++;
+			}
+                        
+			machine->WriteRegister(2, size);
+			bzero(buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+                        updatePC();
+                        break; // SC_Read
+                }
 
                 case SC_Write:
                 {
-                        DEBUG('a', "Write syscall invoked.\n");
+                        DEBUG('a', "DEBUG: Write syscall invoked.\n");
                         int baddr = machine->ReadRegister(4); //address of buffer
                         int bsize =  machine->ReadRegister(5);
                         int fd =   machine->ReadRegister(6);
@@ -156,7 +183,7 @@ ExceptionHandler(ExceptionType which)
 			} while( size < (BUF_SIZE - 1) && buf[size-1] != '\0');
                 
 			size--;
-			DEBUG('a', "Size of write buffer = %d", size);
+			DEBUG('a', "DEBUG: Size of write buffer = %d\n", size);
 
                         write(fd, buf, bsize);
                         
@@ -167,7 +194,7 @@ ExceptionHandler(ExceptionType which)
 
                 case SC_Open:
                 {
-                        DEBUG('a', "Open syscall invoked.\n");
+                        DEBUG('a', "DEBUG: Open syscall invoked.\n");
 			int faddr = machine->ReadRegister(4); //address of filename string
                 
 			int size = 0;
@@ -188,9 +215,11 @@ ExceptionHandler(ExceptionType which)
 			} while( size < (BUF_SIZE - 1) && buf[size-1] != '\0');
                 
 			size--;
-			DEBUG('a', "Size of filename string = %d", size);
+			DEBUG('a', "DEBUG: Size of filename string = %d\n", size);
                 
 			int fd = open(buf, O_RDWR);
+			
+			DEBUG('a', "DEBUG: fd = %d.\n", fd);
 			machine->WriteRegister(2, fd);
 			bzero(buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
 
@@ -200,7 +229,7 @@ ExceptionHandler(ExceptionType which)
 
                 case SC_Close:
                 {
-                        DEBUG('a', "Close syscall invoked.\n");
+                        DEBUG('a', "DEBUG: Close syscall invoked.\n");
 			int fd = machine->ReadRegister(4);
                 
                         close(fd);
@@ -210,7 +239,7 @@ ExceptionHandler(ExceptionType which)
                 }
 
                 default:
-                        printf("Unknown/Unimplemented system call %d!", type);
+                        printf("Unknown/Unimplemented system call %d!\n", type);
                         ASSERT(FALSE); // Should never happen
                         break;
             } // End switch(type)
