@@ -24,6 +24,32 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "exception.h"
+
+char buf[BUF_SIZE];
+
+void updatePC()
+{
+	// Note that we have to maintain three PC registers, 
+	// namely : PCReg, NextPCReg, PrevPCReg. 
+	// (See machine/machine.cc, machine/machine.h) for more details.
+	int pc, nextpc, prevpc;
+
+	// Read PCs
+	prevpc = machine->ReadRegister(PrevPCReg);
+	pc = machine->ReadRegister(PCReg);
+	nextpc = machine->ReadRegister(NextPCReg);
+
+	// Update PCs
+	prevpc = pc;
+	pc = nextpc;
+	nextpc = nextpc + 4;	// PC incremented by 4 in MIPS
+
+	// Write back PCs
+	machine->WriteRegister(PrevPCReg, prevpc);
+	machine->WriteRegister(PCReg, pc);
+	machine->WriteRegister(NextPCReg, nextpc);
+}
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -53,11 +79,63 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
+    switch(which)
+    {
+        case SyscallException:
+            switch(type)
+            {
+                case SC_Halt:
+                         DEBUG('a', "Shutdown, initiated by user program.\n");
+                         interrupt->Halt();
+                         break;
+
+                case SC_Print:
+                {
+                        DEBUG('a', "Print syscall invoked.\n");
+			int vaddr = machine->ReadRegister(4);
+			// This address (pointer to the string to be printed) is 
+			// the address that points to the user address space.
+			// Simply trying printf("%s", (char*)addr) will not work
+			// as we are now in kernel space.
+                
+			// Get the string from user space.
+                
+			int size = 0;
+                
+			buf[BUF_SIZE - 1] = '\0';               // For safety.
+                
+			do {
+				// Invoke ReadMem to read the contents from user space
+                
+				machine->ReadMem(vaddr,    // Location to be read
+					sizeof(char),      // Size of data to be read
+					(int*)(buf+size)   // where the read contents 
+					);                 // are stored
+                
+				// Compute next address
+				vaddr+=sizeof(char);    size++;
+                
+			} while( size < (BUF_SIZE - 1) && buf[size-1] != '\0');
+                
+			size--;
+			DEBUG('a', "Size of string = %d", size);
+                
+			printf("%s", buf);
+			bzero(buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+			updatePC();
+			break; // SC_Print
+		}
+
+                default:
+                        printf("Unknown/Unimplemented system call %d!", type);
+                        ASSERT(FALSE); // Should never happen
+                        break;
+            } // End switch(type)
+	break; // End case SyscallException
+
+        default:
+                printf("Unexpected user mode exception %d %d\n", which, type);
+                ASSERT(FALSE);
+		break;
     }
 }
