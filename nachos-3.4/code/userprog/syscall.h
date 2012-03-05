@@ -30,6 +30,7 @@
 #define SC_Fork		9
 #define SC_Yield	10
 #define SC_Print	11
+#define SC_MyCopy	12
 
 #ifndef IN_ASM
 
@@ -127,6 +128,9 @@ void Yield();
 
 /* Print the string passed as an argument */
 void Print(char *str);
+
+/* Copy file1 from pos1 to pos2 to file2 */
+void MyCopy(char *file1, char* file2, int pos1, int pos2);
 
 #endif /* IN_ASM */
 

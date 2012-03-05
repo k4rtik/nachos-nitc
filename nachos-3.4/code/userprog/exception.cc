@@ -238,6 +238,75 @@ ExceptionHandler(ExceptionType which)
                         break; // SC_Open
                 }
 
+		case SC_MyCopy:
+                {
+                        DEBUG('a', "DEBUG: MyCopy syscall invoked.\n");
+                        int f1addr = machine->ReadRegister(4); //address of file1 string
+                        int f2addr = machine->ReadRegister(5); //address of file2 string
+                        int pos1 = machine->ReadRegister(6);
+                        int pos2 = machine->ReadRegister(7);
+
+			char file1[BUF_SIZE];
+			char file2[BUF_SIZE];
+                        int fd1, fd2;
+
+			int size1 = 0, size2 = 0;
+                
+			file1[BUF_SIZE - 1] = '\0';               // For safety.
+			file2[BUF_SIZE - 1] = '\0';               // For safety.
+
+			do {
+				// Invoke ReadMem to read the contents from user space
+                
+				machine->ReadMem(f1addr,    // Location to be read
+					sizeof(char),      // Size of data to be read
+					(int*)(file1+size1)   // where the read contents 
+					);                 // are stored
+                
+				// Compute next address
+				f1addr+=sizeof(char);    size1++;
+                
+			} while( size1 < (BUF_SIZE - 1) && file1[size1-1] != '\0');
+
+			DEBUG('a', "DEBUG: file1 string = %s\n", file1);
+
+			do {
+				// Invoke ReadMem to read the contents from user space
+                
+				machine->ReadMem(f2addr,    // Location to be read
+					sizeof(char),      // Size of data to be read
+					(int*)(file2+size2)   // where the read contents 
+					);                 // are stored
+                
+				// Compute next address
+				f2addr+=sizeof(char);    size2++;
+                
+			} while( size2 < (BUF_SIZE - 1) && file2[size2-1] != '\0');
+
+			DEBUG('a', "DEBUG: file2 string = %s\n", file2);
+
+			if ((fd1 = open(file1, O_RDONLY)) < 0) {
+				printf("ERROR: %s doesn't exist!\n", file1);
+			}
+
+			fd2 = open(file2, O_WRONLY|O_CREAT, 0660);
+
+			lseek(fd1, pos1, SEEK_SET);
+
+			int rs = read(fd1, buf, pos2-pos1);
+			int ws = write(fd2, buf, pos2-pos1);
+
+			DEBUG('a', "DEBUG: size of read characters = %d\n", rs);
+			DEBUG('a', "DEBUG: size of written characters = %d\n", ws);
+                        
+                        bzero(buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+			bzero(file1, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+			bzero(file2, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+                        updatePC();
+                        break; // SC_MyCopy
+                }
+
+
                 default:
                         printf("Unknown/Unimplemented system call %d!\n", type);
                         ASSERT(FALSE); // Should never happen

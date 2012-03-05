@@ -138,6 +138,14 @@ Print:
 	j	$31
 	.end Print
 
+	.globl MyCopy
+	.ent	MyCopy
+MyCopy:
+	addiu $2,$0,SC_MyCopy
+	syscall
+	j	$31
+	.end MyCopy
+
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

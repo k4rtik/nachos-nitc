@@ -37,7 +37,7 @@ CPP = gcc -E
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-USERPROGS = halt shell matmult sort test
+USERPROGS = halt shell matmult sort test modif
 
 all: $(USERPROGS)
 
@@ -75,5 +75,12 @@ test.o: test.c
 test: test.o start.o
 	$(LD) $(LDFLAGS) start.o test.o -o test.coff
 	../bin/coff2noff test.coff test
+
+modif.o: modif.c
+	$(CC) $(CFLAGS) -c modif.c
+modif: modif.o start.o
+	$(LD) $(LDFLAGS) start.o modif.o -o modif.coff
+	../bin/coff2noff modif.coff modif
+
 clean:
 	rm -f *.o $(USERPROGS)
