@@ -385,23 +385,37 @@ ExceptionHandler(ExceptionType which)
 			fs2 = fdopen(fd2, "r");
 			fs3 = fdopen(fd3, "w");
 			
-			int count = 0;
+			fgets(buf, BUF_SIZE, fs1);
+			fputs(buf, fs3);
 			
-			while (!feof(fs1) && !feof(fs2)) {
-				fgets(buf, BUF_SIZE, fs1);
-				if (count%2 == 0)
+			while (1) {
+				if (!feof(fs2)){
+					fgets(buf, BUF_SIZE, fs2);
+					fgets(buf, BUF_SIZE, fs2);
+					if (feof(fs2)) break;
 					fputs(buf, fs3);
-					
-				//if(feof(fs1)!=0) break;
-	                        
-	                        fgets(buf, BUF_SIZE, fs2);
-				if (count%2 != 0)
+				}
+				if (!feof(fs1)) {
+					fgets(buf, BUF_SIZE, fs1);
+					fgets(buf, BUF_SIZE, fs1);
+					if (feof(fs1)) break;
 					fputs(buf, fs3);
-				//if(feof(fs2)!=0) break;
-	                        	                        
-	                        count++;
+				}
 			}
-                        
+			
+			while (!feof(fs1)) {
+					fgets(buf, BUF_SIZE, fs1);
+					fgets(buf, BUF_SIZE, fs1);
+					if (feof(fs1)) break;
+					fputs(buf, fs3);
+			}
+			while (!feof(fs2)) {
+					fgets(buf, BUF_SIZE, fs2);
+					fgets(buf, BUF_SIZE, fs2);
+					if (feof(fs2)) break;
+					fputs(buf, fs3);
+			}
+			
                         bzero(buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
 			bzero(f1buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
 			bzero(f2buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
