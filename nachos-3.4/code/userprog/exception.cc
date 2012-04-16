@@ -25,6 +25,7 @@
 #include "system.h"
 #include "syscall.h"
 #include "exception.h"
+#include <stdio.h>
 
 char buf[BUF_SIZE];
 
@@ -304,6 +305,109 @@ ExceptionHandler(ExceptionType which)
 			bzero(file2, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
                         updatePC();
                         break; // SC_MyCopy
+                }
+
+		case SC_MyAppend:
+                {
+                        DEBUG('a', "DEBUG: MyAppend syscall invoked.\n");
+                        int f1addr = machine->ReadRegister(4); //address of file 1 name string
+                        int f2addr = machine->ReadRegister(5); //address of file 2 name string
+			int f3addr = machine->ReadRegister(6); //address of file 3 name string
+
+			char f1buf[BUF_SIZE];
+			char f2buf[BUF_SIZE];
+			char f3buf[BUF_SIZE];
+                        int fd1, fd2, fd3;
+                        FILE *fs1, *fs2, *fs3;
+
+			int size1 = 0, size2 = 0, size3 = 0;
+                
+			f1buf[BUF_SIZE - 1] = '\0';               // For safety.
+			f2buf[BUF_SIZE - 1] = '\0';               // For safety.
+			f3buf[BUF_SIZE - 1] = '\0';               // For safety.
+
+			do {
+				// Invoke ReadMem to read the contents from user space
+                
+				machine->ReadMem(f1addr,    // Location to be read
+					sizeof(char),      // Size of data to be read
+					(int*)(f1buf+size1)   // where the read contents 
+					);                 // are stored
+                
+				// Compute next address
+				f1addr+=sizeof(char);    size1++;
+                
+			} while( size1 < (BUF_SIZE - 1) && f1buf[size1-1] != '\0');
+
+			DEBUG('a', "DEBUG: file 1 name string = %s\n", f1buf);
+
+			do {
+				// Invoke ReadMem to read the contents from user space
+                
+				machine->ReadMem(f2addr,    // Location to be read
+					sizeof(char),      // Size of data to be read
+					(int*)(f2buf+size2)   // where the read contents 
+					);                 // are stored
+                
+				// Compute next address
+				f2addr+=sizeof(char);    size2++;
+                
+			} while( size2 < (BUF_SIZE - 1) && f2buf[size2-1] != '\0');
+
+			DEBUG('a', "DEBUG: file 2 name string = %s\n", f2buf);
+
+			do {
+				// Invoke ReadMem to read the contents from user space
+                
+				machine->ReadMem(f3addr,    // Location to be read
+					sizeof(char),      // Size of data to be read
+					(int*)(f3buf+size3)   // where the read contents 
+					);                 // are stored
+                
+				// Compute next address
+				f3addr+=sizeof(char);    size3++;
+                
+			} while( size3 < (BUF_SIZE - 1) && f3buf[size3-1] != '\0');
+
+			DEBUG('a', "DEBUG: file 3 name string = %s\n", f3buf);
+
+			if ((fd1 = open(f1buf, O_RDONLY)) < 0) {
+				printf("ERROR: %s doesn't exist!\n", f1buf);
+			}
+
+			if ((fd2 = open(f2buf, O_RDONLY)) < 0) {
+				printf("ERROR: %s doesn't exist!\n", f2buf);
+			}
+
+			fd3 = open(f3buf, O_WRONLY|O_CREAT, 0660);
+			
+			fs1 = fdopen(fd1, "r");
+			fs2 = fdopen(fd2, "r");
+			fs3 = fdopen(fd3, "w");
+			
+			int count = 0;
+			
+			while (!feof(fs1) && !feof(fs2)) {
+				fgets(buf, BUF_SIZE, fs1);
+				if (count%2 == 0)
+					fputs(buf, fs3);
+					
+				//if(feof(fs1)!=0) break;
+	                        
+	                        fgets(buf, BUF_SIZE, fs2);
+				if (count%2 != 0)
+					fputs(buf, fs3);
+				//if(feof(fs2)!=0) break;
+	                        	                        
+	                        count++;
+			}
+                        
+                        bzero(buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+			bzero(f1buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+			bzero(f2buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+			bzero(f3buf, sizeof(char)*BUF_SIZE);  // Zeroing the buffer.
+                        updatePC();
+                        break; // SC_MyAppend
                 }
 
 

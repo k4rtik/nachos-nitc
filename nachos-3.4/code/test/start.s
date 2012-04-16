@@ -146,6 +146,14 @@ MyCopy:
 	j	$31
 	.end MyCopy
 
+	.globl MyAppend
+	.ent	MyAppend
+MyAppend:
+	addiu $2,$0,SC_MyAppend
+	syscall
+	j	$31
+	.end MyAppend
+
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

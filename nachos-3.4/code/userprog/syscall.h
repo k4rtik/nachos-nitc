@@ -31,6 +31,7 @@
 #define SC_Yield	10
 #define SC_Print	11
 #define SC_MyCopy	12
+#define SC_MyAppend	13
 
 #ifndef IN_ASM
 
@@ -131,6 +132,10 @@ void Print(char *str);
 
 /* Copy file1 from pos1 to pos2 to file2 */
 void MyCopy(char *file1, char* file2, int pos1, int pos2);
+
+
+/* Copy lines alternating from f1 and f2 to f3 */
+void MyAppend(char *f1, char* f2, char *f3);
 
 #endif /* IN_ASM */
 
