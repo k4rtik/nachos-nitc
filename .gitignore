@@ -8,3 +8,8 @@ nachos-3.4/code/test/modif
 *.o
 nachos-3.4/nachos.ps
 resources/
+*filesys/nachos
+*network/nachos
+*threads/nachos
+*userprog/nachos
+*vm/nachos
