@@ -81,6 +81,7 @@ Searching
 
    ... shows all files in the directory code/ that contains DEBUG along with 
    their line numbers. This is very useful sometimes.
+3. Use a code browser like cscope.
 
 Known Issues
 ============
