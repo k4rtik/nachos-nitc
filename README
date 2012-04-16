@@ -1,22 +1,8 @@
-General Information
-===================
-The cross compilers are installed in all systems in 
-Software Systems Laboratory.
-
-The cross compilers are needed if you are installing
-Nachos in your home computers.
-
-On a Red-Hat machine, they can be installed as follows
-	rpm -ivh <file-name>.rpm
-
-On Debian machines, you can use the .deb files by issuing
-	dpkg -i <file-name>.deb
-
 Introduction to Nachos
 ======================
 Nachos runs on a simlated machine which understands MIPS.
 
-Since we have a simulator, one might thing that the kernel is also running on
+Since we have a simulator, one might think that the kernel is also running on
 the simulator. But it is not so. In a linux system the Nachos kernel (that the
 student writes) as well as the simulator is a user level process.
 The simulator reads in the user test program executable as the data and

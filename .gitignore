@@ -3,7 +3,8 @@ nachos-3.4/README.release
 nachos-3.4/c++example/
 nachos-3.4/code/cscope.out
 nachos-3.4/code/test/test
-nachos-3.4/code/test/test.coff
-nachos-3.4/code/test/test.o
+nachos-3.4/code/test/modif
+*.coff
+*.o
 nachos-3.4/nachos.ps
 resources/
