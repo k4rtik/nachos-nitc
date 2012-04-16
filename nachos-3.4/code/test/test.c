@@ -8,7 +8,7 @@ void main()
         //void Write(char *buffer, int size, OpenFileId id);
         
         //int Read(char *buffer, int size, OpenFileId id);
-        Read(buf, 1024, file);
+        Read(buf, 500, file);
         Write("Hello World!\n", 13, file);
         Close(file);
         Print(buf);
