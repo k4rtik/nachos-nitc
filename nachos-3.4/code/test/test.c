@@ -1,7 +1,7 @@
 void main()
 {
         int file;
-        char buf[1024];
+        char buf[500];
 
 	Print("=== Test program initiated ===\n");
         file = Open("abc.txt");
@@ -12,6 +12,6 @@ void main()
         Write("Hello World!\n", 13, file);
         Close(file);
         Print(buf);
-	Print("--- Test program terminated ---\n");
+	Print("Test program terminated!\n");
 	Halt();	// Optional. Just print stats
 }
